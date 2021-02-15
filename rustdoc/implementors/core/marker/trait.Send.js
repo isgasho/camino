@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["camino"] = [{"text":"impl Send for Utf8PathBuf","synthetic":true,"types":[]},{"text":"impl Send for Utf8Path","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Send for Utf8Ancestors&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Send for Utf8Components&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Send for Iter&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Send for Utf8Component&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Send for Utf8PrefixComponent&lt;'a&gt;","synthetic":true,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

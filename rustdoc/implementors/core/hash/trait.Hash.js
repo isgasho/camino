@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["camino"] = [{"text":"impl&lt;'a&gt; Hash for Utf8Component&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Hash for Utf8PrefixComponent&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Hash for Utf8PathBuf","synthetic":false,"types":[]},{"text":"impl Hash for Utf8Path","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
