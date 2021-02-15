@@ -1600,6 +1600,61 @@
 <span id="1597">1597</span>
 <span id="1598">1598</span>
 <span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) The camino Contributors</span>
 <span class="comment">// SPDX-License-Identifier: MIT OR Apache-2.0</span>
@@ -1746,7 +1801,8 @@
     <span class="doccomment">/// assert_eq!(Utf8Path::new(&quot;/test&quot;), p.as_path());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Utf8Path</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>) }
+        <span class="comment">// SAFETY: every Utf8PathBuf constructor ensures that self is valid UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>) }
     }
 
     <span class="doccomment">/// Extends `self` with `path`.</span>
@@ -1897,7 +1953,13 @@
 
     <span class="doccomment">/// Converts this `Utf8PathBuf` into a [boxed](Box) [`Utf8Path`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_boxed_path</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_boxed_path</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Utf8Path</span>) }
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_boxed_path</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Utf8Path</span>;
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">// * self is valid UTF-8</span>
+        <span class="comment">// * ptr was constructed by consuming self so it represents an owned path</span>
+        <span class="comment">// * Utf8Path is marked as #[repr(transparent)] so the conversion from *mut Path to</span>
+        <span class="comment">//   *mut Utf8Path is valid</span>
+        <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) }
     }
 
     <span class="doccomment">/// Invokes [`capacity`] on the underlying instance of [`PathBuf`].</span>
@@ -2020,7 +2082,9 @@
     <span class="doccomment">/// assert_eq!(from_string, from_path);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>(<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Utf8Path</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>())) }
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>());
+        <span class="comment">// SAFETY: s is a str which means it is always valid UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="ident">path</span>) }
     }
 
     <span class="doccomment">/// Converts a [`Path`] to a `Utf8Path`.</span>
@@ -2067,7 +2131,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`str`]: str</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
+        <span class="comment">// SAFETY: every Utf8Path constructor ensures that self is valid UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
     }
 
     <span class="doccomment">/// Yields the underlying [`OsStr`] slice.</span>
@@ -2175,9 +2240,10 @@
     <span class="doccomment">/// assert_eq!(grand_parent.parent(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">parent</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="ident">path</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">parent</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: self is valid UTF-8, so parent is valid UTF-8 as well</span>
+            <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="ident">path</span>) }
+        })
     }
 
     <span class="doccomment">/// Produces an iterator over `Utf8Path` and its ancestors.</span>
@@ -2232,7 +2298,10 @@
     <span class="doccomment">/// assert_eq!(None, Utf8Path::new(&quot;/&quot;).file_name());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">file_name</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="ident">s</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">file_name</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: self is valid UTF-8, so file_name is valid UTF-8 as well</span>
+            <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="ident">s</span>) }
+        })
     }
 
     <span class="doccomment">/// Returns a path that, when joined onto `base`, yields `self`.</span>
@@ -2264,9 +2333,11 @@
     <span class="doccomment">/// assert_eq!(path.strip_prefix(prefix), Ok(Utf8Path::new(&quot;haha/foo.txt&quot;)));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Utf8Path</span>, <span class="ident">StripPrefixError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">strip_prefix</span>(<span class="ident">base</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="ident">path</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">strip_prefix</span>(<span class="ident">base</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: self is valid UTF-8, and strip_prefix returns a part of self (or an empty</span>
+            <span class="comment">// string), so it is valid UTF-8 as well.</span>
+            <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="ident">path</span>) }
+        })
     }
 
     <span class="doccomment">/// Determines whether `base` is a prefix of `self`.</span>
@@ -2337,7 +2408,10 @@
     <span class="doccomment">/// assert_eq!(&quot;foo.tar&quot;, Utf8Path::new(&quot;foo.tar.gz&quot;).file_stem().unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_stem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">file_stem</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="ident">s</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">file_stem</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: self is valid UTF-8, so file_stem is valid UTF-8 as well</span>
+            <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="ident">s</span>) }
+        })
     }
 
     <span class="doccomment">/// Extracts the extension of [`self.file_name`], if possible.</span>
@@ -2360,7 +2434,10 @@
     <span class="doccomment">/// assert_eq!(&quot;gz&quot;, Utf8Path::new(&quot;foo.tar.gz&quot;).extension().unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">extension</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="ident">s</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">extension</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: self is valid UTF-8, so extension is valid UTF-8 as well</span>
+            <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="ident">s</span>) }
+        })
     }
 
     <span class="doccomment">/// Creates an owned [`Utf8PathBuf`] with `path` adjoined to `self`.</span>
@@ -2676,11 +2753,20 @@
 
     <span class="doccomment">/// Converts a `Box&lt;Utf8Path&gt;` into a [`Utf8PathBuf`] without copying or allocating.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_path_buf</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Utf8PathBuf</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Utf8PathBuf</span>(<span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Path</span>).<span class="ident">into_path_buf</span>()) }
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Path</span>;
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">// * self is valid UTF-8</span>
+        <span class="comment">// * ptr was constructed by consuming self so it represents an owned path.</span>
+        <span class="comment">// * Utf8Path is marked as #[repr(transparent)] so the conversion from a *mut Utf8Path to a</span>
+        <span class="comment">//   *mut Path is valid.</span>
+        <span class="kw">let</span> <span class="ident">boxed_path</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) };
+        <span class="ident">Utf8PathBuf</span>(<span class="ident">boxed_path</span>.<span class="ident">into_path_buf</span>())
     }
 
     <span class="comment">// invariant: Path must be guaranteed to be utf-8 data</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">assert_utf8</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Utf8Path</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">assume_utf8</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Utf8Path</span> {
+        <span class="comment">// SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a</span>
+        <span class="comment">// *const Path to a *const Utf8Path is valid.</span>
         <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>)
     }
 }
@@ -2711,9 +2797,11 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Utf8Path</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">next</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="ident">path</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: Utf8Ancestors was constructed from a Utf8Path, so it is guaranteed to</span>
+            <span class="comment">// be valid UTF-8</span>
+            <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="ident">path</span>) }
+        })
     }
 }
 
@@ -2755,7 +2843,9 @@
     <span class="doccomment">/// assert_eq!(Utf8Path::new(&quot;foo/bar.txt&quot;), components.as_path());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Utf8Path</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assert_utf8</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_path</span>()) }
+        <span class="comment">// SAFETY: Utf8Components was constructed from a Utf8Path, so it is guaranteed to be valid</span>
+        <span class="comment">// UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">Utf8Path</span>::<span class="ident">assume_utf8</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_path</span>()) }
     }
 }
 
@@ -2763,9 +2853,11 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Utf8Component</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">next</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Utf8Component</span>::<span class="ident">new</span>(<span class="ident">component</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be</span>
+            <span class="comment">// valid UTF-8</span>
+            <span class="kw">unsafe</span> { <span class="ident">Utf8Component</span>::<span class="ident">new</span>(<span class="ident">component</span>) }
+        })
     }
 }
 
@@ -2773,9 +2865,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Utf8Components</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">next_back</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">Utf8Component</span>::<span class="ident">new</span>(<span class="ident">component</span>) })
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be</span>
+            <span class="comment">// valid UTF-8</span>
+            <span class="kw">unsafe</span> { <span class="ident">Utf8Component</span>::<span class="ident">new</span>(<span class="ident">component</span>) }
+        })
     }
 }
 
@@ -2881,7 +2975,7 @@
             <span class="ident">Component</span>::<span class="ident">RootDir</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Component</span>::<span class="ident">RootDir</span>,
             <span class="ident">Component</span>::<span class="ident">CurDir</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Component</span>::<span class="ident">CurDir</span>,
             <span class="ident">Component</span>::<span class="ident">ParentDir</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Component</span>::<span class="ident">ParentDir</span>,
-            <span class="ident">Component</span>::<span class="ident">Normal</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Component</span>::<span class="ident">Normal</span>(<span class="ident">assert_utf8</span>(<span class="ident">s</span>)),
+            <span class="ident">Component</span>::<span class="ident">Normal</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Utf8Component</span>::<span class="ident">Normal</span>(<span class="ident">assume_utf8</span>(<span class="ident">s</span>)),
         }
     }
 
@@ -2897,7 +2991,9 @@
     <span class="doccomment">/// assert_eq!(&amp;components, &amp;[&quot;.&quot;, &quot;tmp&quot;, &quot;foo&quot;, &quot;bar.txt&quot;]);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
+        <span class="comment">// SAFETY: Utf8Component was constructed from a Utf8Path, so it is guaranteed to be</span>
+        <span class="comment">// valid UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
     }
 
     <span class="doccomment">/// Extracts the underlying [`OsStr`] slice.</span>
@@ -2942,7 +3038,9 @@
     <span class="comment">// TODO kind</span>
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="kw">unsafe</span> { <span class="ident">assert_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
+        <span class="comment">// SAFETY: Utf8PrefixComponent was constructed from a Utf8Path, so it is guaranteed to be</span>
+        <span class="comment">// valid UTF-8</span>
+        <span class="kw">unsafe</span> { <span class="ident">assume_utf8</span>(<span class="self">self</span>.<span class="ident">as_os_str</span>()) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_os_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span> {
@@ -3013,14 +3111,26 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Utf8PathBuf</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path</span>: <span class="ident">Utf8PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">arc</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">from</span>(<span class="ident">path</span>.<span class="number">0</span>);
-        <span class="kw">unsafe</span> { <span class="ident">Arc</span>::<span class="ident">from_raw</span>(<span class="ident">Arc</span>::<span class="ident">into_raw</span>(<span class="ident">arc</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>) }
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">into_raw</span>(<span class="ident">arc</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>;
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">// * path is valid UTF-8</span>
+        <span class="comment">// * ptr was created by consuming an Arc&lt;Path&gt; so it represents an arced pointer</span>
+        <span class="comment">// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to</span>
+        <span class="comment">//   *const Utf8Path is valid</span>
+        <span class="kw">unsafe</span> { <span class="ident">Arc</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Utf8PathBuf</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path</span>: <span class="ident">Utf8PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">rc</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">from</span>(<span class="ident">path</span>.<span class="number">0</span>);
-        <span class="kw">unsafe</span> { <span class="ident">Rc</span>::<span class="ident">from_raw</span>(<span class="ident">Rc</span>::<span class="ident">into_raw</span>(<span class="ident">rc</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>) }
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">into_raw</span>(<span class="ident">rc</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>;
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">// * path is valid UTF-8</span>
+        <span class="comment">// * ptr was created by consuming an Rc&lt;Path&gt; so it represents an rced pointer</span>
+        <span class="comment">// * Utf8Path is marked as #[repr(transparent)] so the conversion from *const Path to</span>
+        <span class="comment">//   *const Utf8Path is valid</span>
+        <span class="kw">unsafe</span> { <span class="ident">Rc</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) }
     }
 }
 
@@ -3197,7 +3307,7 @@
 <span class="macro">impl_cmp</span><span class="macro">!</span>(<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Utf8Path</span><span class="op">&gt;</span>, <span class="ident">Utf8PathBuf</span>);
 
 <span class="comment">// invariant: OsStr must be guaranteed to be utf8 data</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">assert_utf8</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">assume_utf8</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
     <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">string</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">OsStr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">str</span>)
 }
 </pre></div>
