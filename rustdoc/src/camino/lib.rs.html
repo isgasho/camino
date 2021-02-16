@@ -3329,12 +3329,12 @@
 <span class="doccomment">/// A structure wrapping a Windows path prefix as well as its unparsed string</span>
 <span class="doccomment">/// representation.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// In addition to the parsed [`Prefix`] information returned by [`kind`],</span>
-<span class="doccomment">/// `PrefixComponent` also holds the raw and unparsed [`OsStr`] slice,</span>
-<span class="doccomment">/// returned by [`as_os_str`].</span>
+<span class="doccomment">/// In addition to the parsed [`Utf8Prefix`] information returned by [`kind`],</span>
+<span class="doccomment">/// `Utf8PrefixComponent` also holds the raw and unparsed [`str`] slice,</span>
+<span class="doccomment">/// returned by [`as_str`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Instances of this `struct` can be obtained by matching against the</span>
-<span class="doccomment">/// [`Prefix` variant] on [`Component`].</span>
+<span class="doccomment">/// [`Prefix` variant] on [`Utf8Component`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Does not occur on Unix.</span>
 <span class="doccomment">///</span>
