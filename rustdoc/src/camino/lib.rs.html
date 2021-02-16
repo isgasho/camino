@@ -1990,6 +1990,12 @@
 <span id="1987">1987</span>
 <span id="1988">1988</span>
 <span id="1989">1989</span>
+<span id="1990">1990</span>
+<span id="1991">1991</span>
+<span id="1992">1992</span>
+<span id="1993">1993</span>
+<span id="1994">1994</span>
+<span id="1995">1995</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) The camino Contributors</span>
 <span class="comment">// SPDX-License-Identifier: MIT OR Apache-2.0</span>
@@ -3683,6 +3689,12 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Utf8PathBuf</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Utf8PathBuf</span> {
         <span class="ident">path</span>.<span class="ident">into_path_buf</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Utf8PathBuf</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">path</span>: <span class="ident">Utf8PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
+        <span class="ident">path</span>.<span class="ident">into_boxed_path</span>()
     }
 }
 
