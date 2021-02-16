@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["camino"] = [{"text":"impl&lt;'a&gt; Copy for Utf8Ancestors&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Utf8Component&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Utf8PrefixComponent&lt;'a&gt;","synthetic":false,"types":[]}];
+implementors["camino"] = [{"text":"impl&lt;'a&gt; Copy for Utf8Ancestors&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Utf8Component&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Utf8Prefix&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Utf8PrefixComponent&lt;'a&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
