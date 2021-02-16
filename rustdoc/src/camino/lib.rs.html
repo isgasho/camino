@@ -1971,6 +1971,19 @@
 <span id="1968">1968</span>
 <span id="1969">1969</span>
 <span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
+<span id="1983">1983</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) The camino Contributors</span>
 <span class="comment">// SPDX-License-Identifier: MIT OR Apache-2.0</span>
@@ -3122,6 +3135,19 @@
         <span class="comment">// SAFETY: Utf8Path is marked as #[repr(transparent)] so the conversion from a</span>
         <span class="comment">// *const Path to a *const Utf8Path is valid.</span>
         <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Utf8Path</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Utf8Path</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">boxed</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">boxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Utf8Path</span>;
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">// * self is valid UTF-8</span>
+        <span class="comment">// * ptr was created by consuming a Box&lt;Path&gt; so it represents an rced pointer</span>
+        <span class="comment">// * Utf8Path is marked as #[repr(transparent)] so the conversion from *mut Path to</span>
+        <span class="comment">//   *mut Utf8Path is valid</span>
+        <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) }
     }
 }
 
